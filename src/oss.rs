@@ -1,16 +1,16 @@
-use chrono::prelude::*;
-use reqwest::header::{HeaderMap, DATE};
-use reqwest::Client;
-use std::borrow::Cow;
-use std::collections::HashMap;
-use std::str;
-use std::time::{Duration, SystemTime};
-
+use super::{auth::*, errors::Error, utils::*};
 use crate::errors::ObjectError;
-
-use super::auth::*;
-use super::errors::Error;
-use super::utils::*;
+use chrono::prelude::*;
+use reqwest::{
+    header::{HeaderMap, DATE},
+    Client,
+};
+use std::{
+    borrow::Cow,
+    collections::HashMap,
+    str,
+    time::{Duration, SystemTime},
+};
 
 const RESOURCES: [&str; 50] = [
     "acl",
@@ -269,8 +269,11 @@ pub struct ObjectMeta {
     pub last_modified: SystemTime,
     /// The size in bytes of the object
     pub size: usize,
-    /// 128-bits RFC 1864 MD5. This field only presents in normal file. Multipart and append-able file will have empty md5.
+    /// 128-bits RFC 1864 MD5. This field only presents in normal file. Multipart and append-able
+    /// file will have empty md5.
     pub md5: String,
+    /// meta data stroed in ``x-oss-meta-*`` headers
+    pub meta: HashMap<String, String>,
 }
 
 impl ObjectMeta {
@@ -307,11 +310,48 @@ impl ObjectMeta {
             })
         })?;
         let md5 = getter("Content-Md5")?.to_string();
+        let mut meta = HashMap::new();
+        for (k, v) in header {
+            if let Some(meta_key) = k.as_str().strip_prefix("x-oss-meta-") {
+                meta.insert(meta_key.to_owned(), v.to_str().unwrap().to_owned());
+            }
+        }
 
         Ok(Self {
             last_modified,
             size,
             md5,
+            meta,
         })
     }
+}
+
+#[test]
+fn object_meta_meta() {
+    use maplit::hashmap;
+    use reqwest::header::{HeaderMap, CONTENT_LENGTH, LAST_MODIFIED};
+
+    let mut header = HeaderMap::new();
+    header.insert(
+        LAST_MODIFIED,
+        "Sun, 25 Feb 2024 03:17:34 GMT".parse().unwrap(),
+    );
+    header.insert(CONTENT_LENGTH, "1234".parse().unwrap());
+    header.insert("Content-Md5", "1234567890".parse().unwrap());
+
+    // no metedata
+    let map = ObjectMeta::from_header_map(&header).unwrap();
+    assert!(map.meta.is_empty());
+
+    // has metatada
+    header.insert("x-oss-meta-b", "foo".parse().unwrap());
+    header.insert("x-oss-meta-a", "bar".parse().unwrap());
+    let map = ObjectMeta::from_header_map(&header).unwrap();
+    assert_eq!(
+        hashmap! {
+            "b".to_owned() => "foo".to_owned(),
+            "a".to_owned() => "bar".to_owned(),
+        },
+        map.meta
+    );
 }
