@@ -1,14 +1,13 @@
+use super::{
+    errors::{Error, ObjectError},
+    oss::OSS,
+    utils::*,
+};
+use crate::{auth::Auth, oss::RequestType};
 use quick_xml::{events::Event, Reader};
 use reqwest::header::{HeaderMap, HeaderValue, DATE};
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-
-use crate::auth::Auth;
-use crate::oss::RequestType;
-
-use super::errors::{Error, ObjectError};
-use super::oss::OSS;
-use super::utils::*;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 #[serde(rename_all = "PascalCase")]
@@ -252,6 +251,10 @@ pub trait ObjectAPI {
     fn delete_object<S>(&self, object_name: S) -> Result<(), Error>
     where
         S: AsRef<str>;
+
+    fn presigned_path<S1>(&self, object_name: S1, expires: usize) -> String
+    where
+        S1: AsRef<str> + Send;
 }
 
 impl<'a> PrivateObjectAPI for OSS<'a> {
@@ -487,5 +490,12 @@ impl<'a> ObjectAPI for OSS<'a> {
                 msg: format!("can not delete object, status code: {}", resp.status()).into(),
             }))
         }
+    }
+
+    fn presigned_path<S1>(&self, object_name: S1, expires: usize) -> String
+    where
+        S1: AsRef<str> + Send,
+    {
+        self.generate_presigned_path(object_name, expires)
     }
 }
