@@ -1,8 +1,6 @@
-use reqwest::header::{HeaderMap, HeaderName, HeaderValue};
-use reqwest::header::{CONTENT_TYPE, DATE};
-
-use base64::encode;
+use base64::prelude::*;
 use hmac::{Hmac, Mac};
+use reqwest::header::{HeaderMap, HeaderName, HeaderValue, CONTENT_TYPE, DATE};
 
 type HmacSha1 = Hmac<sha1::Sha1>;
 
@@ -51,7 +49,7 @@ impl<'a> Auth for OSS<'a> {
             .unwrap_or_default();
         let content_md5 = headers
             .get("Content-MD5")
-            .and_then(|md5| Some(encode(md5.to_str().unwrap_or_default())))
+            .and_then(|md5| Some(BASE64_STANDARD.encode(md5.to_str().unwrap_or_default())))
             .unwrap_or_default();
 
         let mut oss_headers: Vec<(&HeaderName, &HeaderValue)> = headers
@@ -78,7 +76,7 @@ impl<'a> Auth for OSS<'a> {
             .expect("Hmac can take key of any size, should not happned");
         hasher.update(sign_str.as_bytes());
 
-        encode(&hasher.finalize().into_bytes())
+        BASE64_STANDARD.encode(&hasher.finalize().into_bytes())
     }
 
     fn oss_sign(
