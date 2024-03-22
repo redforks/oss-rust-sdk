@@ -9,9 +9,8 @@ license = "Apache-2.0"
 repository = "https://github.com/NoXF/oss-rust-sdk"
 
 [dependencies]
-reqwest = { version = "0.11.13", features = ["blocking"], default-features = false, optional = true }
+reqwest = { version = "0.12", features = ["blocking"], default-features = false, optional = true }
 base64 = "0.21"
-chrono = "0.4.20"
 log = "0.4.17"
 quick-xml = { version = "0.31", features = ["serialize"] }
 derive_more = "0.99.5"
@@ -22,6 +21,7 @@ hmac = "0.12"
 sha1 = "0.10"
 serde = { version = "1.0.156", features = ["derive"] }
 urlencoding = "2.1.3"
+time = { version = "0.3.34", features = ["macros", "formatting"] }
 
 [dev-dependencies]
 maplit = "1.0.2"

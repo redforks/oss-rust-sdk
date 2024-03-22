@@ -1,6 +1,5 @@
 use super::{auth::*, errors::Error, utils::*};
 use crate::errors::ObjectError;
-use chrono::prelude::*;
 use reqwest::{
     header::{HeaderMap, DATE},
     Client,
@@ -11,6 +10,7 @@ use std::{
     str,
     time::{Duration, SystemTime},
 };
+use time::{macros::format_description, OffsetDateTime};
 
 const RESOURCES: [&str; 50] = [
     "acl",
@@ -152,8 +152,12 @@ impl<'a> OSS<'a> {
     }
 
     pub fn date(&self) -> String {
-        let now: DateTime<Utc> = Utc::now();
-        now.format("%a, %d %b %Y %T GMT").to_string()
+        let now: OffsetDateTime = OffsetDateTime::now_utc();
+        // format datetime in rfc 7231
+        let fmt = format_description!(
+            "[weekday], [day] [month repr:short] [year] [hour]:[minute]:[second] GMT"
+        );
+        now.format(&fmt).unwrap()
     }
 
     pub fn get_resources_str<S>(&self, params: &HashMap<S, Option<S>>) -> String
