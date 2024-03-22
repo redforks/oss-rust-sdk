@@ -10,7 +10,7 @@ repository = "https://github.com/NoXF/oss-rust-sdk"
 
 [dependencies]
 reqwest = { version = "0.12", features = ["blocking"], default-features = false, optional = true }
-base64 = "0.21"
+base64 = "0.22"
 log = "0.4.17"
 quick-xml = { version = "0.31", features = ["serialize"] }
 derive_more = "0.99.5"
