@@ -153,11 +153,7 @@ impl<'a> OSS<'a> {
 
     pub fn date(&self) -> String {
         let now: OffsetDateTime = OffsetDateTime::now_utc();
-        // format datetime in rfc 7231
-        let fmt = format_description!(
-            "[weekday], [day] [month repr:short] [year] [hour]:[minute]:[second] GMT"
-        );
-        now.format(&fmt).unwrap()
+        rfc_7231_date(now)
     }
 
     pub fn get_resources_str<S>(&self, params: &HashMap<S, Option<S>>) -> String
@@ -247,6 +243,13 @@ impl<'a> OSS<'a> {
     }
 }
 
+pub fn rfc_7231_date(d: OffsetDateTime) -> String {
+    let fmt = format_description!(
+        "[weekday repr:short], [day] [month repr:short] [year] [hour]:[minute]:[second] GMT"
+    );
+    d.format(&fmt).unwrap()
+}
+
 pub enum RequestType {
     Get,
     Put,
@@ -328,6 +331,12 @@ impl ObjectMeta {
             meta,
         })
     }
+}
+
+#[test]
+fn format_rfc_7231_date() {
+    let d = OffsetDateTime::from_unix_timestamp(0).unwrap();
+    assert_eq!("Thu, 01 Jan 1970 00:00:00 GMT", rfc_7231_date(d));
 }
 
 #[test]
