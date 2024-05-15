@@ -1,15 +1,12 @@
-use std::collections::HashMap;
-
+use super::errors::{Error, ObjectError};
 use crate::{
     multi_part::{CompleteMultipartUploadResult, InitiateMultipartUploadResult},
     oss::{ObjectMeta, RequestType},
     prelude::{ListObjects, OSS},
 };
-
-use super::errors::{Error, ObjectError};
-
 use async_trait::async_trait;
 use bytes::Bytes;
+use std::collections::HashMap;
 
 #[async_trait]
 pub trait AsyncObjectAPI {
@@ -24,7 +21,7 @@ pub trait AsyncObjectAPI {
         object_name: S1,
         headers: H,
         resources: R,
-    ) -> Result<Bytes, Error>
+    ) -> Result<(Bytes, ObjectMeta), Error>
     where
         S1: AsRef<str> + Send,
         S2: AsRef<str> + Send,
@@ -127,7 +124,6 @@ pub trait AsyncObjectAPI {
     ///  };
     ///
     ///  let body = quick_xml::se::to_string_with_root("CompleteMultipartUpload", &parts).unwrap();
-    ///
     async fn complete_multi<S1, S2, H, R>(
         &self,
         body: String,
@@ -178,7 +174,7 @@ impl<'a> AsyncObjectAPI for OSS<'a> {
         object_name: S1,
         headers: H,
         resources: R,
-    ) -> Result<Bytes, Error>
+    ) -> Result<(Bytes, ObjectMeta), Error>
     where
         S1: AsRef<str> + Send,
         S2: AsRef<str> + Send,
@@ -191,7 +187,8 @@ impl<'a> AsyncObjectAPI for OSS<'a> {
         let resp = self.http_client.get(&host).headers(headers).send().await?;
 
         if resp.status().is_success() {
-            Ok(resp.bytes().await?)
+            let meta = ObjectMeta::from_header_map(resp.headers())?;
+            Ok((resp.bytes().await?, meta))
         } else {
             Err(Error::Object(ObjectError::GetError {
                 msg: format!("can not get object, status code: {}", resp.status()),
