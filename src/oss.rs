@@ -324,10 +324,12 @@ impl ObjectMeta {
                 meta.insert(meta_key.to_owned(), v.to_str().unwrap().to_owned());
             }
         }
-        let filename = dbg!(getter("Content-Disposition").ok().map(|s| s.to_owned()));
+        let filename = header.get("Content-Disposition");
         let filename = filename
             .map(|s| {
-                s.split(';')
+                s.to_str()
+                    .unwrap()
+                    .split(';')
                     .find(|s| s.trim().starts_with("filename="))
                     .map(|s| {
                         s.trim()
