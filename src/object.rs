@@ -294,7 +294,7 @@ impl<'a> ObjectAPI for OSS<'a> {
             self.build_request(RequestType::Get, String::new(), headers, resources)?;
 
         let resp = reqwest::blocking::Client::new()
-            .get(&host)
+            .get(host)
             .headers(headers)
             .send()?;
 
@@ -320,7 +320,7 @@ impl<'a> ObjectAPI for OSS<'a> {
             self.build_request(RequestType::Get, object_name, headers, resources)?;
 
         let mut resp = reqwest::blocking::Client::new()
-            .get(&host)
+            .get(host)
             .headers(headers)
             .send()?;
         let mut buf: Vec<u8> = vec![];
@@ -330,7 +330,7 @@ impl<'a> ObjectAPI for OSS<'a> {
             Ok(buf)
         } else {
             Err(Error::Object(ObjectError::GetError {
-                msg: format!("can not get object, status code: {}", resp.status()).into(),
+                msg: format!("can not get object, status code: {}", resp.status()),
             }))
         }
     }
@@ -393,7 +393,7 @@ impl<'a> ObjectAPI for OSS<'a> {
         let buf = load_file(file)?;
 
         let resp = reqwest::blocking::Client::new()
-            .put(&host)
+            .put(host)
             .headers(headers)
             .body(buf)
             .send()?;
@@ -402,7 +402,7 @@ impl<'a> ObjectAPI for OSS<'a> {
             Ok(())
         } else {
             Err(Error::Object(ObjectError::PutError {
-                msg: format!("can not put object, status code: {}", resp.status()).into(),
+                msg: format!("can not put object, status code: {}", resp.status()),
             }))
         }
     }
@@ -424,7 +424,7 @@ impl<'a> ObjectAPI for OSS<'a> {
             self.build_request(RequestType::Put, object_name, headers, resources)?;
 
         let resp = reqwest::blocking::Client::new()
-            .put(&host)
+            .put(host)
             .headers(headers)
             .body(buf.to_owned())
             .send()?;
@@ -433,7 +433,7 @@ impl<'a> ObjectAPI for OSS<'a> {
             Ok(())
         } else {
             Err(Error::Object(ObjectError::PutError {
-                msg: format!("can not put object, status code: {}", resp.status()).into(),
+                msg: format!("can not put object, status code: {}", resp.status()),
             }))
         }
     }
@@ -457,7 +457,7 @@ impl<'a> ObjectAPI for OSS<'a> {
         headers.insert("x-oss-copy-source", src.as_ref().parse()?);
 
         let resp = reqwest::blocking::Client::new()
-            .put(&host)
+            .put(host)
             .headers(headers)
             .send()?;
 
@@ -465,7 +465,7 @@ impl<'a> ObjectAPI for OSS<'a> {
             Ok(())
         } else {
             Err(Error::Object(ObjectError::CopyError {
-                msg: format!("can not copy object, status code: {}", resp.status()).into(),
+                msg: format!("can not copy object, status code: {}", resp.status()),
             }))
         }
     }
@@ -479,7 +479,7 @@ impl<'a> ObjectAPI for OSS<'a> {
             self.build_request(RequestType::Delete, object_name, Some(headers), None)?;
 
         let resp = reqwest::blocking::Client::new()
-            .delete(&host)
+            .delete(host)
             .headers(headers)
             .send()?;
 
@@ -487,7 +487,7 @@ impl<'a> ObjectAPI for OSS<'a> {
             Ok(())
         } else {
             Err(Error::Object(ObjectError::DeleteError {
-                msg: format!("can not delete object, status code: {}", resp.status()).into(),
+                msg: format!("can not delete object, status code: {}", resp.status()),
             }))
         }
     }

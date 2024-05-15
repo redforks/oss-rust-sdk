@@ -40,16 +40,13 @@ impl<'a> Auth for OSS<'a> {
         headers: &HeaderMap,
     ) -> String {
         let date = headers
-            .get(DATE)
-            .and_then(|d| Some(d.to_str().unwrap_or_default()))
+            .get(DATE).map(|d| d.to_str().unwrap_or_default())
             .unwrap_or_default();
         let content_type = headers
-            .get(CONTENT_TYPE)
-            .and_then(|c| Some(c.to_str().unwrap_or_default()))
+            .get(CONTENT_TYPE).map(|c| c.to_str().unwrap_or_default())
             .unwrap_or_default();
         let content_md5 = headers
-            .get("Content-MD5")
-            .and_then(|md5| Some(BASE64_STANDARD.encode(md5.to_str().unwrap_or_default())))
+            .get("Content-MD5").map(|md5| BASE64_STANDARD.encode(md5.to_str().unwrap_or_default()))
             .unwrap_or_default();
 
         let mut oss_headers: Vec<(&HeaderName, &HeaderValue)> = headers
@@ -76,7 +73,7 @@ impl<'a> Auth for OSS<'a> {
             .expect("Hmac can take key of any size, should not happned");
         hasher.update(sign_str.as_bytes());
 
-        BASE64_STANDARD.encode(&hasher.finalize().into_bytes())
+        BASE64_STANDARD.encode(hasher.finalize().into_bytes())
     }
 
     fn oss_sign(
@@ -98,12 +95,12 @@ impl<'a> Auth for OSS<'a> {
 
 #[inline]
 fn get_oss_resource_str(bucket: &str, object: &str, oss_resources: &str) -> String {
-    let oss_resources = if oss_resources != "" {
+    let oss_resources = if !oss_resources.is_empty() {
         String::from("?") + oss_resources
     } else {
         String::new()
     };
-    if bucket == "" {
+    if bucket.is_empty() {
         format!("/{}{}", bucket, oss_resources)
     } else {
         format!("/{}/{}{}", bucket, object, oss_resources)
