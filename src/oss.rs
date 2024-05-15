@@ -324,7 +324,7 @@ impl ObjectMeta {
                 meta.insert(meta_key.to_owned(), v.to_str().unwrap().to_owned());
             }
         }
-        let filename = dbg!(header.get("Content-Disposition"));
+        let filename = header.get("Content-Disposition");
         let filename = filename
             .map(|v| {
                 let s = std::str::from_utf8(v.as_bytes()).unwrap();

@@ -1,6 +1,5 @@
 use oss_rust_sdk::oss::*;
-use std::collections::HashMap;
-use std::str;
+use std::{collections::HashMap, str};
 use tokio::runtime::Runtime;
 
 fn main() {
@@ -66,7 +65,7 @@ fn async_list_object() {
         let result = oss_instance.list_object(None, params).await.unwrap();
 
         for object in result.contents() {
-            dbg!(&object.key());
+            &object.key();
         }
     });
 }
@@ -87,6 +86,6 @@ fn list_object() {
     let result = oss_instance.list_object(None, params).unwrap();
 
     for object in result.contents() {
-        dbg!(&object.key());
+        &object.key();
     }
 }
