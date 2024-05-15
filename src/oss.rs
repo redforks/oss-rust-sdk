@@ -326,10 +326,9 @@ impl ObjectMeta {
         }
         let filename = dbg!(header.get("Content-Disposition"));
         let filename = filename
-            .map(|s| {
-                s.to_str()
-                    .unwrap()
-                    .split(';')
+            .map(|v| {
+                let s = std::str::from_utf8(v.as_bytes()).unwrap();
+                s.split(';')
                     .find(|s| s.trim().starts_with("filename="))
                     .map(|s| {
                         s.trim()
