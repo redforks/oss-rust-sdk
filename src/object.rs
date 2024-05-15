@@ -3,7 +3,10 @@ use super::{
     oss::OSS,
     utils::*,
 };
-use crate::{auth::Auth, oss::RequestType};
+use crate::{
+    auth::Auth,
+    oss::{ObjectMeta, RequestType},
+};
 use quick_xml::{events::Event, Reader};
 use reqwest::header::{HeaderMap, HeaderValue, DATE};
 use serde::{Deserialize, Serialize};
@@ -192,7 +195,7 @@ pub trait ObjectAPI {
         object_name: S1,
         headers: H,
         resources: R,
-    ) -> Result<Vec<u8>, Error>
+    ) -> Result<(Vec<u8>, ObjectMeta), Error>
     where
         S1: AsRef<str>,
         S2: AsRef<str>,
@@ -309,7 +312,7 @@ impl<'a> ObjectAPI for OSS<'a> {
         object_name: S1,
         headers: H,
         resources: R,
-    ) -> Result<Vec<u8>, Error>
+    ) -> Result<(Vec<u8>, ObjectMeta), Error>
     where
         S1: AsRef<str>,
         S2: AsRef<str>,
@@ -327,7 +330,8 @@ impl<'a> ObjectAPI for OSS<'a> {
 
         if resp.status().is_success() {
             resp.copy_to(&mut buf)?;
-            Ok(buf)
+            let meta = ObjectMeta::from_header_map(resp.headers())?;
+            Ok((buf, meta))
         } else {
             Err(Error::Object(ObjectError::GetError {
                 msg: format!("can not get object, status code: {}", resp.status()),
@@ -342,7 +346,7 @@ impl<'a> ObjectAPI for OSS<'a> {
         let object_name = object_name.as_ref();
         let mut params: HashMap<&str, Option<&str>> = HashMap::new();
         params.insert("acl", None);
-        let result = String::from_utf8(self.get_object(object_name, None, Some(params))?)?;
+        let result = String::from_utf8(self.get_object(object_name, None, Some(params))?.0)?;
         let mut reader = Reader::from_str(&result);
         reader.trim_text(true);
         let mut grant = String::new();
