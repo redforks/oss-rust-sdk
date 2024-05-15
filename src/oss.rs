@@ -281,6 +281,8 @@ pub struct ObjectMeta {
     pub md5: String,
     /// meta data stroed in ``x-oss-meta-*`` headers
     pub meta: HashMap<String, String>,
+    /// Get from `Content-Disposition` header
+    pub filename: Option<String>,
 }
 
 impl ObjectMeta {
@@ -322,12 +324,19 @@ impl ObjectMeta {
                 meta.insert(meta_key.to_owned(), v.to_str().unwrap().to_owned());
             }
         }
+        let filename = getter("Content-Disposition").ok().map(|s| s.to_owned());
+        let filename = filename.map(|s| {
+            s.split(';')
+                .find(|s| s.trim().starts_with("filename="))
+                .map(|s| s.trim().split('=').last().unwrap().trim_matches('"').to_owned())
+        }).flatten();
 
         Ok(Self {
             last_modified,
             size,
             md5,
             meta,
+            filename,
         })
     }
 }
@@ -358,12 +367,18 @@ fn object_meta_meta() {
     // has metatada
     header.insert("x-oss-meta-b", "foo".parse().unwrap());
     header.insert("x-oss-meta-a", "bar".parse().unwrap());
-    let map = ObjectMeta::from_header_map(&header).unwrap();
+    let meta = ObjectMeta::from_header_map(&header).unwrap();
     assert_eq!(
         hashmap! {
             "b".to_owned() => "foo".to_owned(),
             "a".to_owned() => "bar".to_owned(),
         },
-        map.meta
+        meta.meta
     );
+    assert!(meta.filename.is_none());
+
+    // has filename
+    header.insert("Content-Disposition", "attachment; filename=\"foo.txt\"".parse().unwrap());
+    let meta = ObjectMeta::from_header_map(&header).unwrap();
+    assert_eq!(Some("foo.txt".to_owned()), meta.filename);
 }
