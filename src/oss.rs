@@ -324,12 +324,21 @@ impl ObjectMeta {
                 meta.insert(meta_key.to_owned(), v.to_str().unwrap().to_owned());
             }
         }
-        let filename = getter("Content-Disposition").ok().map(|s| s.to_owned());
-        let filename = filename.map(|s| {
-            s.split(';')
-                .find(|s| s.trim().starts_with("filename="))
-                .map(|s| s.trim().split('=').last().unwrap().trim_matches('"').to_owned())
-        }).flatten();
+        let filename = dbg!(getter("Content-Disposition").ok().map(|s| s.to_owned()));
+        let filename = filename
+            .map(|s| {
+                s.split(';')
+                    .find(|s| s.trim().starts_with("filename="))
+                    .map(|s| {
+                        s.trim()
+                            .split('=')
+                            .last()
+                            .unwrap()
+                            .trim_matches('"')
+                            .to_owned()
+                    })
+            })
+            .flatten();
 
         Ok(Self {
             last_modified,
@@ -378,7 +387,10 @@ fn object_meta_meta() {
     assert!(meta.filename.is_none());
 
     // has filename
-    header.insert("Content-Disposition", "attachment; filename=\"foo.txt\"".parse().unwrap());
+    header.insert(
+        "Content-Disposition",
+        "attachment; filename=\"foo.txt\"".parse().unwrap(),
+    );
     let meta = ObjectMeta::from_header_map(&header).unwrap();
     assert_eq!(Some("foo.txt".to_owned()), meta.filename);
 }
