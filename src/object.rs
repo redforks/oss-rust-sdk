@@ -348,7 +348,7 @@ impl<'a> ObjectAPI for OSS<'a> {
         params.insert("acl", None);
         let result = String::from_utf8(self.get_object(object_name, None, Some(params))?.0)?;
         let mut reader = Reader::from_str(&result);
-        reader.trim_text(true);
+        reader.config_mut().trim_text(true);
         let mut grant = String::new();
 
         loop {
