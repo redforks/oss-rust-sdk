@@ -35,7 +35,7 @@ pub struct ListObjects {
     delimiter: String,
     prefix: String,
     marker: String,
-    next_marker: String,
+    next_marker: Option<String>,
     max_keys: String,
     is_truncated: bool,
 
@@ -62,8 +62,8 @@ impl ListObjects {
         &self.marker
     }
 
-    pub fn next_marker(&self) -> &str {
-        &self.next_marker
+    pub fn next_marker(&self) -> Option<&str> {
+        self.next_marker.as_deref()
     }
 
     pub fn max_keys(&self) -> &str {
