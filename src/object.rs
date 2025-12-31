@@ -35,6 +35,7 @@ pub struct ListObjects {
     delimiter: String,
     prefix: String,
     marker: String,
+    #[serde(default)]
     next_marker: Option<String>,
     max_keys: String,
     is_truncated: bool,
