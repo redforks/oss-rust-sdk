@@ -35,6 +35,7 @@ pub struct ListObjects {
     delimiter: String,
     prefix: String,
     marker: String,
+    next_marker: String,
     max_keys: String,
     is_truncated: bool,
 
@@ -45,30 +46,6 @@ pub struct ListObjects {
 }
 
 impl ListObjects {
-    pub fn new(
-        name: String,
-        delimiter: String,
-        prefix: String,
-        marker: String,
-        max_keys: String,
-        is_truncated: bool,
-
-        contents: Vec<Object>,
-        common_prefixes: Vec<CommonPrefix>,
-    ) -> Self {
-        ListObjects {
-            name,
-            delimiter,
-            prefix,
-            marker,
-            max_keys,
-            is_truncated,
-
-            contents,
-            common_prefixes,
-        }
-    }
-
     pub fn name(&self) -> &str {
         &self.name
     }
@@ -83,6 +60,10 @@ impl ListObjects {
 
     pub fn marker(&self) -> &str {
         &self.marker
+    }
+
+    pub fn next_marker(&self) -> &str {
+        &self.next_marker
     }
 
     pub fn max_keys(&self) -> &str {
